@@ -263,5 +263,52 @@ public class VentanaPrincipal extends JFrame {
         frame.setVisible(true);
         escritorio.add(frame);
     }
+    
+ // --- MÉTODO DE BÚSQUEDA (Usando la lógica del Gestor) ---
+    private void buscarCuenta() {
+        // Preguntar al usuario qué tipo de búsqueda quiere
+        String[] opciones = {"Por Número de Cuenta", "Por Nombre del Cliente"};
+        int eleccion = JOptionPane.showOptionDialog(this, 
+                "Seleccione el método de búsqueda (Binaria):", 
+                "Buscar Cuenta", 
+                JOptionPane.DEFAULT_OPTION, 
+                JOptionPane.QUESTION_MESSAGE, 
+                null, opciones, opciones[0]);
+
+        if (eleccion == 0) {
+            // Búsqueda por Número [cite: 36]
+            String input = JOptionPane.showInputDialog(this, "Ingrese el Número de Cuenta:");
+            if (input != null && !input.isEmpty()) {
+                try {
+                    int num = Integer.parseInt(input);
+                    Cuenta c = gestor.buscarCuentaPorNumero(num);
+                    mostrarResultadoBusqueda(c);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Debe ingresar un número válido.");
+                }
+            }
+        } else if (eleccion == 1) {
+            // Búsqueda por Nombre [cite: 37]
+            String input = JOptionPane.showInputDialog(this, "Ingrese el Nombre del Cliente:");
+            if (input != null && !input.isEmpty()) {
+                Cuenta c = gestor.buscarCuentaPorNombre(input);
+                mostrarResultadoBusqueda(c);
+            }
+        }
+    }
+
+    private void mostrarResultadoBusqueda(Cuenta c) {
+        if (c != null) {
+            String info = "Cuenta Encontrada:\n\n" +
+                          "Número: " + c.getNumCuenta() + "\n" +
+                          "Cliente: " + c.getNombreCliente() + "\n" +
+                          "Saldo Actual: $" + c.getSaldo() + "\n" +
+                          "Tipo: " + (c instanceof CuentaAhorro ? "Ahorro" : "Corriente");
+            JOptionPane.showMessageDialog(this, info, "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "No se encontró ninguna cuenta con esos datos.", "Sin resultados", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+}
 
     // --- BÚ
