@@ -1,33 +1,30 @@
 package TrabajoCuentas;
 
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
 public class VentanaPrincipal extends JFrame {
 
-    private JDesktopPane escritorio; // Contenedor para ventanas internas
-    private GestorBanco gestor;      // Instancia de nuestra lógica de negocio
+    private JDesktopPane escritorio; 
+    private GestorBanco gestor;      
 
     public VentanaPrincipal() {
-        // Inicializar el gestor (carga datos del archivo automáticamente)
+        // Inicializar el gestor
         gestor = new GestorBanco();
 
-        // Configuración de la Ventana Principal
+        // Configuración de la ventana
         setTitle("Banco Azteca - Sistema de Gestión");
         setSize(1200, 800);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // 1. Crear el JDesktopPane (Área de trabajo)
+        // 1. Crear el JDesktopPane
         escritorio = new JDesktopPane();
         setContentPane(escritorio);
 
-        // 2. Crear la Barra de Menú
+        // 2. Barra de Menú
         JMenuBar barraMenu = new JMenuBar();
 
         // --- MENÚ CUENTAS ---
@@ -58,50 +55,43 @@ public class VentanaPrincipal extends JFrame {
         JMenuItem itemCorte = new JMenuItem("Aplicar Intereses y Comisiones");
         menuOperaciones.add(itemCorte);
 
-        // Agregar menús a la barra
         barraMenu.add(menuCuentas);
         barraMenu.add(menuPrestamos);
         barraMenu.add(menuOperaciones);
         setJMenuBar(barraMenu);
 
-        // --- ASIGNACIÓN DE EVENTOS (Listeners) ---
-        
-        // Eventos Cuentas
+        // --- EVENTOS ---
         itemAltaCuenta.addActionListener(e -> ventanaAltaCuenta());
         itemReporteCuentas.addActionListener(e -> ventanaReporteCuentas());
         itemBuscarCuenta.addActionListener(e -> buscarCuenta());
 
-        // Eventos Préstamos
         itemAltaOrdinario.addActionListener(e -> ventanaAltaPrestamo("ORDINARIO"));
         itemAltaMimoto.addActionListener(e -> ventanaAltaPrestamo("MIMOTO"));
         itemAltaAutomotriz.addActionListener(e -> ventanaAltaPrestamo("AUTOMOTRIZ"));
         itemReportePrestamos.addActionListener(e -> ventanaReportePrestamos());
 
-        // Evento Operaciones
         itemCorte.addActionListener(e -> {
-            gestor.aplicarCorteMensual(); // Asegúrate de crear este método en GestorBanco que recorra las cuentas
+            gestor.aplicarCorteMensual(); 
             JOptionPane.showMessageDialog(this, "Intereses y comisiones aplicados correctamente.");
-            ventanaReporteCuentas(); // Refrescar vista
+            ventanaReporteCuentas(); 
         });
     }
 
     // --------------------------------------------------------------------------
-    // MÉTODOS PARA VENTANAS INTERNAS (JInternalFrame)
+    // MÉTODOS PARA VENTANAS INTERNAS
     // --------------------------------------------------------------------------
 
-    // --- FORMULARIO ALTA CUENTA ---
     private void ventanaAltaCuenta() {
         JInternalFrame frame = new JInternalFrame("Nueva Cuenta", true, true, true, true);
         frame.setSize(350, 300);
         frame.setLayout(new GridLayout(6, 2, 10, 10));
 
-        // Componentes
         JTextField txtNum = new JTextField();
         JTextField txtNom = new JTextField();
         JTextField txtSal = new JTextField();
         String[] tipos = {"Ahorro", "Corriente"};
         JComboBox<String> cmbTipo = new JComboBox<>(tipos);
-        JTextField txtExtra = new JTextField(); // Sirve para Cuota o Costo Transacción
+        JTextField txtExtra = new JTextField(); 
         
         frame.add(new JLabel(" No. Cuenta:")); frame.add(txtNum);
         frame.add(new JLabel(" Cliente:")); frame.add(txtNom);
@@ -112,9 +102,8 @@ public class VentanaPrincipal extends JFrame {
         JButton btnGuardar = new JButton("Guardar");
         frame.add(new JLabel("")); frame.add(btnGuardar);
 
-        // Acción Guardar
         btnGuardar.addActionListener(e -> {
-            try { // Manejo de errores
+            try {
                 int num = Integer.parseInt(txtNum.getText());
                 String nom = txtNom.getText();
                 double saldo = Double.parseDouble(txtSal.getText());
@@ -122,19 +111,18 @@ public class VentanaPrincipal extends JFrame {
                 
                 Cuenta nuevaCuenta;
                 if (cmbTipo.getSelectedItem().equals("Ahorro")) {
-                    // num, nombre, saldo, cuotaMantenimiento
                     nuevaCuenta = new CuentaAhorro(num, nom, saldo, extra);
                 } else {
-                    // num, nombre, saldo, transacciones(0), importeTransaccion
-                    nuevaCuenta = new CuentaCorriente(num, nom, saldo, 0, extra);
+                    // CORRECCIÓN AQUÍ: Eliminamos el '0' que sobraba
+                    nuevaCuenta = new CuentaCorriente(num, nom, saldo, extra);
                 }
                 
                 gestor.agregarCuenta(nuevaCuenta);
                 JOptionPane.showMessageDialog(frame, "Cuenta creada exitosamente.");
-                frame.dispose(); // Cerrar ventana interna
+                frame.dispose(); 
                 
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(frame, "Error: Verifique que los campos numéricos sean correctos.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Error: Verifique números.", "Error", JOptionPane.ERROR_MESSAGE);
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(frame, "Error al guardar: " + ex.getMessage());
             }
@@ -144,7 +132,6 @@ public class VentanaPrincipal extends JFrame {
         escritorio.add(frame);
     }
 
-    // --- FORMULARIO ALTA PRÉSTAMO (Genérico para los 3 tipos) ---
     private void ventanaAltaPrestamo(String tipo) {
         JInternalFrame frame = new JInternalFrame("Nuevo Préstamo: " + tipo, true, true, true, true);
         frame.setSize(400, 350);
@@ -154,13 +141,12 @@ public class VentanaPrincipal extends JFrame {
         JTextField txtCliente = new JTextField();
         JTextField txtMonto = new JTextField();
         JTextField txtPlazo = new JTextField();
-        JTextField txtVariable = new JTextField(); // ISR, Enganche o Comision
-        JTextField txtIVA = new JTextField(); // Solo para Automotriz
+        JTextField txtVariable = new JTextField(); 
+        JTextField txtIVA = new JTextField(); 
         
         frame.add(new JLabel(" No. Préstamo:")); frame.add(txtNum);
         frame.add(new JLabel(" Cliente:")); frame.add(txtCliente);
         
-        // Etiquetas dinámicas según el tipo
         String labelMonto = " Monto:";
         String labelVar = "";
         
@@ -175,14 +161,14 @@ public class VentanaPrincipal extends JFrame {
         if (tipo.equals("AUTOMOTRIZ")) {
             frame.add(new JLabel(" % IVA:")); frame.add(txtIVA);
         } else {
-            frame.add(new JLabel("")); frame.add(new JLabel("")); // Espacio vacío
+            frame.add(new JLabel("")); frame.add(new JLabel("")); 
         }
 
         JButton btnGuardar = new JButton("Calcular y Guardar");
         frame.add(new JLabel("")); frame.add(btnGuardar);
 
         btnGuardar.addActionListener(e -> {
-            try { // Manejo de errores
+            try { 
                 int num = Integer.parseInt(txtNum.getText());
                 String cli = txtCliente.getText();
                 double mon = Double.parseDouble(txtMonto.getText());
@@ -200,7 +186,6 @@ public class VentanaPrincipal extends JFrame {
                     nuevoP = new PrestamoAutomotriz(num, cli, mon, plazo, var, iva);
                 }
                 
-                // IMPORTANTE: GestorBanco debe tener metodo agregarPrestamo
                 gestor.agregarPrestamo(nuevoP); 
                 JOptionPane.showMessageDialog(frame, "Préstamo registrado.\nTotal a pagar: $" + nuevoP.getSaldoPrestamo());
                 frame.dispose();
@@ -214,17 +199,15 @@ public class VentanaPrincipal extends JFrame {
         escritorio.add(frame);
     }
 
-    // --- REPORTE DE CUENTAS (TABLA) ---
     private void ventanaReporteCuentas() {
         JInternalFrame frame = new JInternalFrame("Reporte General de Cuentas", true, true, true, true);
         frame.setSize(600, 400);
 
-        // Definición de tabla
         String[] columnas = {"No. Cuenta", "Cliente", "Tipo", "Saldo"};
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
         JTable tabla = new JTable(modelo);
         
-        gestor.ordenarPorNombreQuickSort(); // Ordenamiento requerido
+        gestor.ordenarPorNombreQuickSort(); 
 
         Cuenta[] lista = gestor.getCuentas();
         for (Cuenta c : lista) {
@@ -233,12 +216,11 @@ public class VentanaPrincipal extends JFrame {
             modelo.addRow(fila);
         }
 
-        frame.add(new JScrollPane(tabla)); // Scroll pane es vital para tablas
+        frame.add(new JScrollPane(tabla)); 
         frame.setVisible(true);
         escritorio.add(frame);
     }
     
-    // --- REPORTE DE PRÉSTAMOS (TABLA) ---
     private void ventanaReportePrestamos() {
         JInternalFrame frame = new JInternalFrame("Reporte de Préstamos", true, true, true, true);
         frame.setSize(600, 400);
@@ -247,7 +229,7 @@ public class VentanaPrincipal extends JFrame {
         DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
         JTable tabla = new JTable(modelo);
         
-        ArrayList<Prestamo> lista = gestor.getPrestamos(); // Asumiendo que GestorBanco devuelve ArrayList
+        ArrayList<Prestamo> lista = gestor.getPrestamos(); 
         
         for (Prestamo p : lista) {
             String tipo = "Desconocido";
@@ -264,9 +246,8 @@ public class VentanaPrincipal extends JFrame {
         escritorio.add(frame);
     }
     
- // --- MÉTODO DE BÚSQUEDA (Usando la lógica del Gestor) ---
+    // --- MÉTODOS DE BÚSQUEDA ---
     private void buscarCuenta() {
-        // Preguntar al usuario qué tipo de búsqueda quiere
         String[] opciones = {"Por Número de Cuenta", "Por Nombre del Cliente"};
         int eleccion = JOptionPane.showOptionDialog(this, 
                 "Seleccione el método de búsqueda (Binaria):", 
@@ -276,7 +257,6 @@ public class VentanaPrincipal extends JFrame {
                 null, opciones, opciones[0]);
 
         if (eleccion == 0) {
-            // Búsqueda por Número [cite: 36]
             String input = JOptionPane.showInputDialog(this, "Ingrese el Número de Cuenta:");
             if (input != null && !input.isEmpty()) {
                 try {
@@ -288,7 +268,6 @@ public class VentanaPrincipal extends JFrame {
                 }
             }
         } else if (eleccion == 1) {
-            // Búsqueda por Nombre [cite: 37]
             String input = JOptionPane.showInputDialog(this, "Ingrese el Nombre del Cliente:");
             if (input != null && !input.isEmpty()) {
                 Cuenta c = gestor.buscarCuentaPorNombre(input);
@@ -306,9 +285,7 @@ public class VentanaPrincipal extends JFrame {
                           "Tipo: " + (c instanceof CuentaAhorro ? "Ahorro" : "Corriente");
             JOptionPane.showMessageDialog(this, info, "Éxito", JOptionPane.INFORMATION_MESSAGE);
         } else {
-            JOptionPane.showMessageDialog(this, "No se encontró ninguna cuenta con esos datos.", "Sin resultados", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No se encontró ninguna cuenta.", "Sin resultados", JOptionPane.WARNING_MESSAGE);
         }
     }
 }
-
-    // --- BÚ
