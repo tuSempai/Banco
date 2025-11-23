@@ -1,23 +1,20 @@
 package TrabajoCuentas;
-
-
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
 
-// Clase abstracta como pide el punto B 
 public abstract class Cuenta implements Serializable {
-    private  int numCuenta;
-    private String nombreCliente;
-    private double saldo;
-    private ArrayList<Prestamo> prestamos = new ArrayList<Prestamo>(); //Cuando el usuario pida un prestamo o lo solicite
-    
+    // CAMBIO IMPORTANTE: protected para que las hijas accedan
+    protected int numCuenta;
+    protected String nombreCliente;
+    protected double saldo;
+    protected ArrayList<Prestamo> prestamos = new ArrayList<Prestamo>();
+
     public Cuenta(int numCuenta, String nombreCliente, double saldo) {
         this.numCuenta = numCuenta;
         this.nombreCliente = nombreCliente;
         this.saldo = saldo;
     }
 
-     
     public abstract void comisiones();
     public abstract void intereses();
 
@@ -31,7 +28,6 @@ public abstract class Cuenta implements Serializable {
         }
     }
 
- 
     public int getNumCuenta() { return numCuenta; }
     public String getNombreCliente() { return nombreCliente; }
     public double getSaldo() { return saldo; }
