@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import javax.swing.JOptionPane;
 
 public class GestorBanco {
-    // REQUISITO PDF: "Trabajar con estructuras estáticas" -> Usamos un arreglo fijo [].
+    // REQUISITOS: "Trabajar con estructuras estáticas" -> Usamos un arreglo fijo [].
     private Cuenta[] cuentas;
     // 'cantidadCuentas' sirve como un puntero para saber hasta dónde está lleno el arreglo.
     private int cantidadCuentas;
     private final int MAX_CUENTAS = 100; // Tope máximo del banco.
 
-    // Para préstamos, el PDF permite dinámicas, así que usamos ArrayList (más fácil).
+    // Para préstamos permite dinámicas, así que usamos ArrayList.
     private ArrayList<Prestamo> prestamos;
 
     // Nombres de los archivos físicos
@@ -39,7 +39,7 @@ public class GestorBanco {
         }
     }
 
-    // REQUISITO: Opción Eliminar Cuenta
+    // REQUISITOS: Opción Eliminar Cuenta
     public boolean eliminarCuenta(int numCuenta) {
         // 1. Buscar la cuenta en el arreglo
         for (int i = 0; i < cantidadCuentas; i++) {
@@ -58,7 +58,7 @@ public class GestorBanco {
         return false; // No se encontró
     }
 
-    // REQUISITO: Opción Modificar Cuenta
+    // REQUISITOS: Opción Modificar Cuenta
     public boolean modificarCuenta(int numCuenta, String nuevoNombre) {
         Cuenta c = buscarCuentaPorNumero(numCuenta);
         if (c != null) {
@@ -104,7 +104,7 @@ public class GestorBanco {
         return prestamos;
     }
 
-    // --- ALGORITMOS DE ORDENAMIENTO (Requisito PDF) ---
+    // --- ALGORITMOS DE ORDENAMIENTO ---
 
     // QuickSort: Algoritmo recursivo rápido para ordenar por nombre
     public void ordenarPorNombreQuickSort() {
@@ -154,7 +154,7 @@ public class GestorBanco {
         }
     }
 
-    // --- BÚSQUEDAS BINARIAS (Requisito PDF) ---
+    // --- BÚSQUEDAS BINARIAS ---
     // La búsqueda binaria requiere que el arreglo esté ordenado primero.
 
     public Cuenta buscarCuentaPorNumero(int numCuenta) {

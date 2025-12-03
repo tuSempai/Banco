@@ -11,8 +11,8 @@ public abstract class Cuenta implements Serializable {
     protected String nombreCliente;
     protected double saldo;
 
-    // REQUISITO PDF: Lista para guardar los préstamos que pertenecen a ESTE cliente.
-    // Usamos ArrayList aquí porque el PDF permite dinámicos para préstamos (Punto 51).
+    // REQUISITOS: Lista para guardar los préstamos que pertenecen a ESTE cliente.
+    // Usamos ArrayList aquí porque el PDF permite dinámicos para préstamos.
     protected ArrayList<Prestamo> prestamos = new ArrayList<>();
 
     // Constructor: Inicializa los datos básicos al crear la cuenta.
