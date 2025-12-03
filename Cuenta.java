@@ -1,14 +1,13 @@
 package Banco;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public abstract class Cuenta implements Serializable {
-    //protected para que las hijas accedan
     protected int numCuenta;
     protected String nombreCliente;
     protected double saldo;
-    protected ArrayList<Prestamo> prestamos = new ArrayList<Prestamo>();
+    // Lista para almacenar los préstamos de ESTA cuenta específica [cite: 45]
+    protected ArrayList<Prestamo> prestamos = new ArrayList<>();
 
     public Cuenta(int numCuenta, String nombreCliente, double saldo) {
         this.numCuenta = numCuenta;
@@ -29,8 +28,19 @@ public abstract class Cuenta implements Serializable {
         }
     }
 
+    // Método nuevo para vincular un préstamo a esta cuenta
+    public void agregarPrestamoPersonal(Prestamo p) {
+        prestamos.add(p);
+    }
+
+    // Método nuevo para obtener los préstamos de esta cuenta para reportes
+    public ArrayList<Prestamo> getPrestamosLista() {
+        return prestamos;
+    }
+
     public int getNumCuenta() { return numCuenta; }
     public String getNombreCliente() { return nombreCliente; }
+    public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; } // Setter para "Cambios"
     public double getSaldo() { return saldo; }
 
     @Override
