@@ -5,92 +5,96 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 
+// Clase que hereda de JFrame para crear la ventana visual
 public class VentanaPrincipal extends JFrame {
 
-    private JDesktopPane escritorio;
-    private GestorBanco gestor;
+    private JDesktopPane escritorio; // Contenedor para las ventanitas internas
+    private GestorBanco gestor;      // Referencia a nuestro sistema lógico (el cerebro)
 
     public VentanaPrincipal() {
-        gestor = new GestorBanco();
-        setTitle("Banco Azteca - Sistema Integral");
-        setSize(1200, 800);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        gestor = new GestorBanco(); // Inicia el gestor (y carga datos si existen en los archivos)
 
+        // Configuración básica de la ventana principal
+        setTitle("Banco Azteca - Sistema Universitario");
+        setSize(1200, 800);
+        setLocationRelativeTo(null); // Centrar en pantalla
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Cerrar programa al cerrar ventana
+
+        // JDesktopPane permite tener ventanas internas flotantes (JInternalFrame)
         escritorio = new JDesktopPane();
         setContentPane(escritorio);
 
+        // --- CREACIÓN DEL MENÚ SUPERIOR ---
         JMenuBar barraMenu = new JMenuBar();
 
-        // --- MENÚ CUENTAS ---
+        // 1. Menú Cuentas
         JMenu menuCuentas = new JMenu("Gestión Cuentas");
-        JMenuItem itemAltaCuenta = new JMenuItem("Alta Nueva Cuenta");
-        JMenuItem itemBajaCuenta = new JMenuItem("Eliminar Cuenta");
-        JMenuItem itemCambioCuenta = new JMenuItem("Cambios (Editar)");
-        JMenuItem itemBuscarCuenta = new JMenuItem("Buscar Cuenta");
+        JMenuItem itemAlta = new JMenuItem("Alta Nueva Cuenta");
+        JMenuItem itemBaja = new JMenuItem("Eliminar Cuenta");
+        JMenuItem itemCambio = new JMenuItem("Modificar Cuenta");
+        JMenuItem itemBuscar = new JMenuItem("Buscar (Binaria)");
+        JMenuItem itemReporte = new JMenuItem("Reporte General");
 
-        menuCuentas.add(itemAltaCuenta);
-        menuCuentas.add(itemBajaCuenta);
-        menuCuentas.add(itemCambioCuenta);
-        menuCuentas.addSeparator();
-        menuCuentas.add(itemBuscarCuenta);
+        menuCuentas.add(itemAlta);
+        menuCuentas.add(itemBaja);
+        menuCuentas.add(itemCambio);
+        menuCuentas.addSeparator(); // Línea separadora visual
+        menuCuentas.add(itemBuscar);
+        menuCuentas.add(itemReporte);
 
-        // --- MENÚ PRÉSTAMOS ---
+        // 2. Menú Operaciones (Caja)
+        JMenu menuOps = new JMenu("Operaciones / Caja");
+        JMenuItem itemMovimiento = new JMenuItem("Realizar Depósito/Retiro");
+        JMenuItem itemCorte = new JMenuItem("Cierre Mensual (Intereses)");
+
+        menuOps.add(itemMovimiento);
+        menuOps.addSeparator();
+        menuOps.add(itemCorte);
+
+        // 3. Menú Préstamos
         JMenu menuPrestamos = new JMenu("Gestión Préstamos");
-        JMenuItem itemAltaOrdinario = new JMenuItem("Alta Préstamo Ordinario");
-        JMenuItem itemAltaMimoto = new JMenuItem("Alta Préstamo MiMoto");
-        JMenuItem itemAltaAutomotriz = new JMenuItem("Alta Préstamo Automotriz");
+        JMenuItem itemOrd = new JMenuItem("Préstamo Ordinario");
+        JMenuItem itemMoto = new JMenuItem("Préstamo MiMoto");
+        JMenuItem itemAuto = new JMenuItem("Préstamo Automotriz");
+        JMenuItem itemRepPrest = new JMenuItem("Reporte de Préstamos");
+        JMenuItem itemRepCliente = new JMenuItem("Préstamos por Cliente");
 
-        menuPrestamos.add(itemAltaOrdinario);
-        menuPrestamos.add(itemAltaMimoto);
-        menuPrestamos.add(itemAltaAutomotriz);
+        menuPrestamos.add(itemOrd);
+        menuPrestamos.add(itemMoto);
+        menuPrestamos.add(itemAuto);
+        menuPrestamos.addSeparator();
+        menuPrestamos.add(itemRepPrest);
+        menuPrestamos.add(itemRepCliente);
 
-        // --- MENÚ REPORTES ---
-        JMenu menuReportes = new JMenu("Reportes");
-        JMenuItem itemRepGeneral = new JMenuItem("General Cuentas (QuickSort)");
-        JMenuItem itemRepCategoria = new JMenuItem("Por Categoría (Inserción)");
-        JMenuItem itemRepClientePrestamos = new JMenuItem("Préstamos por Cliente");
-        JMenuItem itemRepCuentasYPrestamos = new JMenuItem("Relación Cuentas-Préstamos");
-
-        menuReportes.add(itemRepGeneral);
-        menuReportes.add(itemRepCategoria);
-        menuReportes.addSeparator();
-        menuReportes.add(itemRepClientePrestamos);
-        menuReportes.add(itemRepCuentasYPrestamos);
-
-        // --- MENÚ OPERACIONES ---
-        JMenu menuOperaciones = new JMenu("Cierre");
-        JMenuItem itemCorte = new JMenuItem("Aplicar Cierre Mensual");
-        menuOperaciones.add(itemCorte);
-
+        // Agregamos los menús a la barra
         barraMenu.add(menuCuentas);
+        barraMenu.add(menuOps);
         barraMenu.add(menuPrestamos);
-        barraMenu.add(menuReportes);
-        barraMenu.add(menuOperaciones);
         setJMenuBar(barraMenu);
 
-        // --- EVENTOS ---
-        itemAltaCuenta.addActionListener(e -> ventanaAltaCuenta());
-        itemBajaCuenta.addActionListener(e -> eliminarCuenta());
-        itemCambioCuenta.addActionListener(e -> modificarCuenta());
-        itemBuscarCuenta.addActionListener(e -> buscarCuenta());
+        // --- ASIGNACIÓN DE EVENTOS (LISTENERS) ---
+        // Conectamos los clics del menú con los métodos correspondientes
+        itemAlta.addActionListener(e -> ventanaAltaCuenta());
+        itemBaja.addActionListener(e -> procesoEliminar());
+        itemCambio.addActionListener(e -> procesoModificar());
+        itemReporte.addActionListener(e -> ventanaReporteCuentas());
+        itemBuscar.addActionListener(e -> buscarCuenta());
 
-        itemAltaOrdinario.addActionListener(e -> ventanaAltaPrestamo("ORDINARIO"));
-        itemAltaMimoto.addActionListener(e -> ventanaAltaPrestamo("MIMOTO"));
-        itemAltaAutomotriz.addActionListener(e -> ventanaAltaPrestamo("AUTOMOTRIZ"));
-
-        itemRepGeneral.addActionListener(e -> ventanaReporteGeneralOpciones());
-        itemRepCategoria.addActionListener(e -> ventanaReporteCategoria());
-        itemRepClientePrestamos.addActionListener(e -> ventanaBuscarPrestamosCliente());
-        itemRepCuentasYPrestamos.addActionListener(e -> ventanaReporteCuentasConPrestamos());
-
+        itemMovimiento.addActionListener(e -> ventanaMovimientos());
         itemCorte.addActionListener(e -> {
             gestor.aplicarCorteMensual();
-            JOptionPane.showMessageDialog(this, "Cierre mensual aplicado.");
+            JOptionPane.showMessageDialog(this, "Cierre mensual aplicado correctamente.");
+            ventanaReporteCuentas(); // Actualizamos la vista si está abierta
         });
+
+        itemOrd.addActionListener(e -> ventanaAltaPrestamo("ORDINARIO"));
+        itemMoto.addActionListener(e -> ventanaAltaPrestamo("MIMOTO"));
+        itemAuto.addActionListener(e -> ventanaAltaPrestamo("AUTOMOTRIZ"));
+        itemRepPrest.addActionListener(e -> ventanaReportePrestamos());
+        itemRepCliente.addActionListener(e -> buscarPrestamosDeCliente());
     }
 
-    // ---------------- METODOS GESTION CUENTAS ----------------
+    // --- MÉTODOS PARA VENTANAS INTERNAS (GUI) ---
 
     private void ventanaAltaCuenta() {
         JInternalFrame frame = new JInternalFrame("Nueva Cuenta", true, true, true, true);
@@ -120,60 +124,105 @@ public class VentanaPrincipal extends JFrame {
                 double saldo = Double.parseDouble(txtSal.getText());
                 double extra = Double.parseDouble(txtExtra.getText());
 
-                Cuenta nueva = cmbTipo.getSelectedItem().equals("Ahorro")
-                        ? new CuentaAhorro(num, nom, saldo, extra)
-                        : new CuentaCorriente(num, nom, saldo, extra);
+                Cuenta nueva;
+                if (cmbTipo.getSelectedItem().equals("Ahorro")) {
+                    nueva = new CuentaAhorro(num, nom, saldo, extra);
+                } else {
+                    nueva = new CuentaCorriente(num, nom, saldo, extra);
+                }
 
                 gestor.agregarCuenta(nueva);
-                JOptionPane.showMessageDialog(frame, "Guardado.");
+                JOptionPane.showMessageDialog(frame, "Cuenta creada exitosamente.");
                 frame.dispose();
+
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error en datos.");
+                JOptionPane.showMessageDialog(frame, "Error en datos: " + ex.getMessage());
             }
         });
         frame.setVisible(true);
         escritorio.add(frame);
     }
 
-    private void eliminarCuenta() {
+    private void procesoEliminar() {
         String input = JOptionPane.showInputDialog("Ingrese No. Cuenta a Eliminar:");
         if (input != null) {
             try {
                 int num = Integer.parseInt(input);
-                if (gestor.eliminarCuenta(num)) JOptionPane.showMessageDialog(this, "Cuenta Eliminada.");
-                else JOptionPane.showMessageDialog(this, "Cuenta no encontrada.");
-            } catch (Exception e) { JOptionPane.showMessageDialog(this, "Número inválido."); }
+                if (gestor.eliminarCuenta(num)) {
+                    JOptionPane.showMessageDialog(this, "Cuenta eliminada.");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Cuenta no encontrada.");
+                }
+            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Número inválido."); }
         }
     }
 
-    private void modificarCuenta() {
+    private void procesoModificar() {
         String input = JOptionPane.showInputDialog("Ingrese No. Cuenta a Modificar:");
         if (input != null) {
             try {
                 int num = Integer.parseInt(input);
                 Cuenta c = gestor.buscarCuentaPorNumero(num);
                 if (c != null) {
-                    String nuevoNom = JOptionPane.showInputDialog("Nombre actual: " + c.getNombreCliente() + "\nIngrese nuevo nombre:");
+                    String nuevoNom = JOptionPane.showInputDialog("Nombre actual: " + c.getNombreCliente() + "\nNuevo nombre:");
                     if (nuevoNom != null && !nuevoNom.isEmpty()) {
                         gestor.modificarCuenta(num, nuevoNom);
-                        JOptionPane.showMessageDialog(this, "Modificado correctamente.");
+                        JOptionPane.showMessageDialog(this, "Modificación exitosa.");
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "Cuenta no encontrada.");
                 }
-            } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error."); }
+            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Error en datos."); }
         }
     }
 
-    // ---------------- METODOS GESTION PRESTAMOS (CON VALIDACIONES) ----------------
+    // --- MÉTODOS DE CAJA (MOVIMIENTOS) ---
+    private void ventanaMovimientos() {
+        String input = JOptionPane.showInputDialog("Ingrese No. Cuenta para Operación:");
+        if (input == null || input.isEmpty()) return;
 
+        try {
+            int num = Integer.parseInt(input);
+            Cuenta c = gestor.buscarCuentaPorNumero(num);
+            if (c == null) {
+                JOptionPane.showMessageDialog(this, "Cuenta no encontrada.");
+                return;
+            }
+
+            String[] ops = {"Depositar", "Retirar"};
+            int op = JOptionPane.showOptionDialog(this, "Seleccione Operación", "Caja",
+                    0, JOptionPane.QUESTION_MESSAGE, null, ops, ops[0]);
+
+            String montoStr = JOptionPane.showInputDialog("Ingrese Cantidad:");
+            double monto = Double.parseDouble(montoStr);
+
+            if (op == 0) { // Deposito
+                c.abonar(monto);
+                JOptionPane.showMessageDialog(this, "Depósito correcto. Nuevo saldo: " + c.getSaldo());
+            } else { // Retiro
+                if (monto <= c.getSaldo()) {
+                    c.cargar(monto);
+                    JOptionPane.showMessageDialog(this, "Retiro correcto. Nuevo saldo: " + c.getSaldo());
+                    if (c instanceof CuentaCorriente) ((CuentaCorriente)c).nuevaTransaccion();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Saldo insuficiente.");
+                }
+            }
+            // Los cambios se guardarán automáticamente si el gestor maneja autoguardado o al cerrar.
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error en operación: " + e.getMessage());
+        }
+    }
+
+    // --- MÉTODOS DE PRÉSTAMOS ---
     private void ventanaAltaPrestamo(String tipo) {
-        JInternalFrame frame = new JInternalFrame("Nuevo Préstamo " + tipo, true, true, true, true);
+        JInternalFrame frame = new JInternalFrame("Nuevo Préstamo: " + tipo, true, true, true, true);
         frame.setSize(400, 350);
-        frame.setLayout(new GridLayout(7, 2, 5, 5));
+        frame.setLayout(new GridLayout(7, 2, 10, 10));
 
         JTextField txtNum = new JTextField();
-        JTextField txtCliente = new JTextField(); // Debería coincidir con un cliente existente
+        JTextField txtCliente = new JTextField();
         JTextField txtMonto = new JTextField();
         JTextField txtPlazo = new JTextField();
         JTextField txtVariable = new JTextField();
@@ -182,15 +231,16 @@ public class VentanaPrincipal extends JFrame {
         frame.add(new JLabel(" No. Préstamo:")); frame.add(txtNum);
         frame.add(new JLabel(" Cliente (Nombre):")); frame.add(txtCliente);
 
-        String lblMonto = " Monto:";
-        if(tipo.equals("MIMOTO")) lblMonto = " Valor Moto:";
-        frame.add(new JLabel(lblMonto)); frame.add(txtMonto);
-        frame.add(new JLabel(" Plazo (meses):")); frame.add(txtPlazo);
+        String labelMonto = " Monto:";
+        String labelVar = "";
 
-        String lblVar = " % ISR:";
-        if(tipo.equals("MIMOTO")) lblVar = " Enganche ($):";
-        if(tipo.equals("AUTOMOTRIZ")) lblVar = " % Comisión:";
-        frame.add(new JLabel(lblVar)); frame.add(txtVariable);
+        if(tipo.equals("ORDINARIO")) { labelMonto = " Monto ($1k - $2M):"; labelVar = " % ISR:"; }
+        if(tipo.equals("MIMOTO")) { labelMonto = " Valor Moto ($10k - $50k):"; labelVar = " Enganche:"; }
+        if(tipo.equals("AUTOMOTRIZ")) { labelMonto = " Monto (Max $700k):"; labelVar = " % Comisión:"; }
+
+        frame.add(new JLabel(labelMonto)); frame.add(txtMonto);
+        frame.add(new JLabel(" Plazo (meses):")); frame.add(txtPlazo);
+        frame.add(new JLabel(labelVar)); frame.add(txtVariable);
 
         if (tipo.equals("AUTOMOTRIZ")) {
             frame.add(new JLabel(" % IVA:")); frame.add(txtIVA);
@@ -198,10 +248,10 @@ public class VentanaPrincipal extends JFrame {
             frame.add(new JLabel("")); frame.add(new JLabel(""));
         }
 
-        JButton btn = new JButton("Validar y Guardar");
-        frame.add(new JLabel("")); frame.add(btn);
+        JButton btnGuardar = new JButton("Calcular y Guardar");
+        frame.add(new JLabel("")); frame.add(btnGuardar);
 
-        btn.addActionListener(e -> {
+        btnGuardar.addActionListener(e -> {
             try {
                 int num = Integer.parseInt(txtNum.getText());
                 String cli = txtCliente.getText();
@@ -209,20 +259,20 @@ public class VentanaPrincipal extends JFrame {
                 int plazo = Integer.parseInt(txtPlazo.getText());
                 double var = Double.parseDouble(txtVariable.getText());
 
-                // --- VALIDACIONES DE RANGO ---
+                // Validaciones de rangos
                 if (tipo.equals("ORDINARIO")) {
-                    if (mon < 1000 || mon > 2000000) throw new Exception("Monto Ordinario debe ser entre 1,000 y 2,000,000");
-                    if (plazo < 6 || plazo > 60) throw new Exception("Plazo Ordinario debe ser entre 6 y 60 meses");
+                    if (mon < 1000 || mon > 2000000) throw new Exception("Monto fuera de rango (1k-2M)");
+                    if (plazo < 6 || plazo > 60) throw new Exception("Plazo fuera de rango (6-60 meses)");
                     gestor.agregarPrestamo(new PrestamoOrdinario(num, cli, mon, plazo, var));
                 }
                 else if (tipo.equals("MIMOTO")) {
-                    if (mon < 10000 || mon > 50000) throw new Exception("Valor Moto debe ser entre 10,000 y 50,000");
-                    if (plazo < 6 || plazo > 24) throw new Exception("Plazo MiMoto debe ser entre 6 y 24 meses");
+                    if (mon < 10000 || mon > 50000) throw new Exception("Monto fuera de rango (10k-50k)");
+                    if (plazo < 6 || plazo > 24) throw new Exception("Plazo fuera de rango (6-24 meses)");
                     gestor.agregarPrestamo(new PrestamoMimoto(num, cli, mon, plazo, var));
                 }
                 else if (tipo.equals("AUTOMOTRIZ")) {
-                    if (mon > 700000) throw new Exception("Monto Automotriz máximo es 700,000");
-                    if (plazo > 60) throw new Exception("Plazo máximo es 60 meses");
+                    if (mon > 700000) throw new Exception("Monto excede el máximo (700k)");
+                    if (plazo > 60) throw new Exception("Plazo excede el máximo (60 meses)");
                     double iva = Double.parseDouble(txtIVA.getText());
                     gestor.agregarPrestamo(new PrestamoAutomotriz(num, cli, mon, plazo, var, iva));
                 }
@@ -231,153 +281,121 @@ public class VentanaPrincipal extends JFrame {
                 frame.dispose();
 
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Validación", JOptionPane.ERROR_MESSAGE);
             }
         });
+
         frame.setVisible(true);
         escritorio.add(frame);
     }
 
-    // ---------------- REPORTES ----------------
-
-    // Reporte 1: General con opciones de ordenamiento
-    private void ventanaReporteGeneralOpciones() {
-        String[] criterios = {"Por Nombre", "Por Número de Cuenta"};
-        String[] ordenes = {"Ascendente", "Descendente"};
-
-        JComboBox<String> cmbCrit = new JComboBox<>(criterios);
-        JComboBox<String> cmbOrd = new JComboBox<>(ordenes);
-
-        int result = JOptionPane.showConfirmDialog(this, new Object[]{"Criterio:", cmbCrit, "Orden:", cmbOrd},
-                "Opciones de Reporte", JOptionPane.OK_CANCEL_OPTION);
-
-        if (result == JOptionPane.OK_OPTION) {
-            int critIdx = cmbCrit.getSelectedIndex(); // 0 nombre, 1 numero
-            boolean asc = cmbOrd.getSelectedIndex() == 0;
-
-            gestor.ordenarQuickSort(critIdx, asc); // Aplica QuickSort
-            mostrarTablaCuentas("Reporte General (" + cmbCrit.getSelectedItem() + " - " + cmbOrd.getSelectedItem() + ")");
-        }
-    }
-
-    private void mostrarTablaCuentas(String titulo) {
-        JInternalFrame frame = new JInternalFrame(titulo, true, true, true, true);
+    private void ventanaReporteCuentas() {
+        JInternalFrame frame = new JInternalFrame("Reporte General de Cuentas", true, true, true, true);
         frame.setSize(600, 400);
-        String[] col = {"No.", "Cliente", "Tipo", "Saldo"};
-        DefaultTableModel mod = new DefaultTableModel(col, 0);
 
-        for (Cuenta c : gestor.getCuentas()) {
-            mod.addRow(new Object[]{c.getNumCuenta(), c.getNombreCliente(),
-                    (c instanceof CuentaAhorro ? "Ahorro" : "Corriente"), c.getSaldo()});
+        String[] columnas = {"No. Cuenta", "Cliente", "Tipo", "Saldo"};
+        DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
+        JTable tabla = new JTable(modelo);
+
+        gestor.ordenarPorNombreQuickSort();
+
+        Cuenta[] lista = gestor.getCuentas();
+        for (Cuenta c : lista) {
+            String tipo = (c instanceof CuentaAhorro) ? "Ahorro" : "Corriente";
+            Object[] fila = {c.getNumCuenta(), c.getNombreCliente(), tipo, String.format("$%.2f", c.getSaldo())};
+            modelo.addRow(fila);
         }
-        frame.add(new JScrollPane(new JTable(mod)));
+
+        frame.add(new JScrollPane(tabla));
         frame.setVisible(true);
         escritorio.add(frame);
     }
 
-    // Reporte 2: Por Categoría (Usa Inserción)
-    private void ventanaReporteCategoria() {
-        gestor.ordenarPorInsercionNumero(); // Ordena por número primero
-
-        JInternalFrame frame = new JInternalFrame("Reporte por Categoría", true, true, true, true);
+    private void ventanaReportePrestamos() {
+        JInternalFrame frame = new JInternalFrame("Reporte de Préstamos", true, true, true, true);
         frame.setSize(600, 400);
-        String[] col = {"Categoría", "No.", "Cliente", "Saldo"};
-        DefaultTableModel mod = new DefaultTableModel(col, 0);
 
-        // Primero Ahorros
-        for (Cuenta c : gestor.getCuentas()) {
-            if (c instanceof CuentaAhorro)
-                mod.addRow(new Object[]{"AHORRO", c.getNumCuenta(), c.getNombreCliente(), c.getSaldo()});
-        }
-        // Luego Corrientes
-        for (Cuenta c : gestor.getCuentas()) {
-            if (c instanceof CuentaCorriente)
-                mod.addRow(new Object[]{"CORRIENTE", c.getNumCuenta(), c.getNombreCliente(), c.getSaldo()});
+        String[] columnas = {"No.", "Cliente", "Tipo", "Deuda Total"};
+        DefaultTableModel modelo = new DefaultTableModel(columnas, 0);
+        JTable tabla = new JTable(modelo);
+
+        ArrayList<Prestamo> lista = gestor.getPrestamos();
+
+        for (Prestamo p : lista) {
+            String tipo = "Desconocido";
+            if(p instanceof PrestamoOrdinario) tipo = "Ordinario";
+            if(p instanceof PrestamoMimoto) tipo = "MiMoto";
+            if(p instanceof PrestamoAutomotriz) tipo = "Automotriz";
+
+            Object[] fila = {p.getNumPrestamo(), p.getCliente(), tipo, String.format("$%.2f", p.getSaldoPrestamo())};
+            modelo.addRow(fila);
         }
 
-        frame.add(new JScrollPane(new JTable(mod)));
+        frame.add(new JScrollPane(tabla));
         frame.setVisible(true);
         escritorio.add(frame);
     }
 
-    // Reporte 3: Buscar Cliente y mostrar sus préstamos
-    private void ventanaBuscarPrestamosCliente() {
-        String nombre = JOptionPane.showInputDialog("Ingrese Nombre del Cliente:");
-        if (nombre == null || nombre.isEmpty()) return;
+    private void buscarPrestamosDeCliente() {
+        String nombre = JOptionPane.showInputDialog("Ingrese nombre del cliente a buscar:");
+        if(nombre == null || nombre.isEmpty()) return;
 
-        ArrayList<Prestamo> encontrados = new ArrayList<>();
-        // Buscamos en la lista global de préstamos por coincidencia de nombre
-        for (Prestamo p : gestor.getPrestamos()) {
-            if (p.getCliente().equalsIgnoreCase(nombre)) {
-                encontrados.add(p);
-            }
-        }
-
-        if (encontrados.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No se encontraron préstamos para: " + nombre);
-            return;
-        }
-
-        JInternalFrame frame = new JInternalFrame("Préstamos de: " + nombre, true, true, true, true);
-        frame.setSize(600, 300);
-        String[] col = {"No. Préstamo", "Tipo", "Deuda Total"};
-        DefaultTableModel mod = new DefaultTableModel(col, 0);
-
-        for (Prestamo p : encontrados) {
-            String tipo = (p instanceof PrestamoOrdinario) ? "Ordinario" :
-                    (p instanceof PrestamoMimoto) ? "MiMoto" : "Automotriz";
-            mod.addRow(new Object[]{p.getNumPrestamo(), tipo, String.format("%.2f", p.getSaldoPrestamo())});
-        }
-
-        frame.add(new JScrollPane(new JTable(mod)));
-        frame.setVisible(true);
-        escritorio.add(frame);
-    }
-
-    // Reporte 4: General (Cuenta y Nombre) mostrar préstamos
-    private void ventanaReporteCuentasConPrestamos() {
-        JInternalFrame frame = new JInternalFrame("Relación Cuentas - Préstamos", true, true, true, true);
-        frame.setSize(700, 500);
-
-        String[] col = {"No. Cuenta", "Cliente", "Préstamos Asignados (Detalle)"};
-        DefaultTableModel mod = new DefaultTableModel(col, 0);
-
-        gestor.ordenarQuickSort(0, true); // Orden alfabético
-
-        for (Cuenta c : gestor.getCuentas()) {
-            StringBuilder sb = new StringBuilder();
-            ArrayList<Prestamo> listaP = c.getPrestamosLista(); // Usamos la lista interna de la cuenta
-
-            if (listaP.isEmpty()) {
-                sb.append("Sin préstamos");
+        Cuenta c = gestor.buscarCuentaPorNombre(nombre);
+        if(c != null) {
+            ArrayList<Prestamo> susPrestamos = c.getPrestamos();
+            if(susPrestamos.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El cliente existe pero no tiene préstamos activos.");
             } else {
-                for (Prestamo p : listaP) {
-                    sb.append("[#").append(p.getNumPrestamo()).append(" $").append(String.format("%.0f", p.getSaldoPrestamo())).append("] ");
+                String msj = "Préstamos de " + c.getNombreCliente() + ":\n\n";
+                for(Prestamo p : susPrestamos) {
+                    msj += p.toString() + "\n";
                 }
+                JOptionPane.showMessageDialog(this, msj);
             }
-            mod.addRow(new Object[]{c.getNumCuenta(), c.getNombreCliente(), sb.toString()});
+        } else {
+            JOptionPane.showMessageDialog(this, "Cliente no encontrado.");
         }
-
-        frame.add(new JScrollPane(new JTable(mod)));
-        frame.setVisible(true);
-        escritorio.add(frame);
     }
 
-    // Búsqueda simple
     private void buscarCuenta() {
-        String input = JOptionPane.showInputDialog("Ingrese No. Cuenta:");
-        if (input != null) {
-            try {
-                Cuenta c = gestor.buscarCuentaPorNumero(Integer.parseInt(input));
-                if (c != null) JOptionPane.showMessageDialog(this, c.toString());
-                else JOptionPane.showMessageDialog(this, "No encontrada.");
-            } catch (Exception e) { JOptionPane.showMessageDialog(this, "Error número."); }
+        String[] opciones = {"Por Número", "Por Nombre"};
+        int eleccion = JOptionPane.showOptionDialog(this, "Método de búsqueda:", "Buscar",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
+
+        if (eleccion == 0) {
+            String input = JOptionPane.showInputDialog("Ingrese el Número de Cuenta:");
+            if (input != null) {
+                try {
+                    Cuenta c = gestor.buscarCuentaPorNumero(Integer.parseInt(input));
+                    mostrarResultado(c);
+                } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Número inválido."); }
+            }
+        } else if (eleccion == 1) {
+            String input = JOptionPane.showInputDialog("Ingrese el Nombre del Cliente:");
+            if (input != null) {
+                Cuenta c = gestor.buscarCuentaPorNombre(input);
+                mostrarResultado(c);
+            }
         }
     }
 
-    // --- MAIN AGREGADO ---
+    private void mostrarResultado(Cuenta c) {
+        if (c != null) {
+            String info = "Cuenta Encontrada:\n" + c.toString() +
+                    "\nTipo: " + (c instanceof CuentaAhorro ? "Ahorro" : "Corriente");
+            JOptionPane.showMessageDialog(this, info);
+        } else {
+            JOptionPane.showMessageDialog(this, "No se encontró ninguna cuenta.");
+        }
+    }
+
+    // --- AQUÍ ESTÁ EL ARREGLO DEL ERROR ---
+    // Metodo Main obligatorio para que Java pueda iniciar el programa
     public static void main(String[] args) {
+        // SwingUtilities.invokeLater asegura que la interfaz gráfica
+        // se maneje en el hilo correcto (Event Dispatch Thread).
         SwingUtilities.invokeLater(() -> {
+            // Creamos una instancia de nuestra ventana y la hacemos visible
             new VentanaPrincipal().setVisible(true);
         });
     }
