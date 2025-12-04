@@ -2,190 +2,208 @@ package Banco;
 
 import java.io.*;
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
+import java.util.Arrays;
 
 public class GestorBanco {
-    // REQUISITOS: "Trabajar con estructuras estáticas" -> Usamos un arreglo fijo [].
-    private Cuenta[] cuentas;
-    // 'cantidadCuentas' sirve como un puntero para saber hasta dónde está lleno el arreglo.
-    private int cantidadCuentas;
-    private final int MAX_CUENTAS = 100; // Tope máximo del banco.
+    // Listas para guardar la información en memoria mientras el programa corre
+    private ArrayList<Cuenta> cuentas;
+    private ArrayList<Prestamo> prestamos;
 
-    // Para préstamos permite dinámicas, así que usamos ArrayList.
-    private ArrayList<Prestamo> prestamos; // esto no deberia ir aqui por que ya esta en el banco
-
-    // Nombres de los archivos físicos
-    private final String ARCHIVO_CUENTAS = "cuentas.dat";
-    private final String ARCHIVO_PRESTAMOS = "prestamos.dat";
-
+    // Constructor: Carga los datos guardados al iniciar
     public GestorBanco() {
-        // Inicializamos el arreglo vacío con 100 espacios
-        cuentas = new Cuenta[MAX_CUENTAS];
-        cantidadCuentas = 0;
+        cuentas = new ArrayList<>();
         prestamos = new ArrayList<>();
-        cargarDatos(); // Intentamos recuperar datos guardados anteriormente
+        cargarDatos();
     }
 
-    // --- GESTIÓN DE CUENTAS (Altas, Bajas, Cambios) ---
-
+    // --- MÉTODOS DE REGISTRO (ALTAS) ---
     public void agregarCuenta(Cuenta c) {
-        // Validación: Solo guardamos si hay espacio en el arreglo
-        if (cantidadCuentas < MAX_CUENTAS) {
-            cuentas[cantidadCuentas] = c; // Guardamos en la posición disponible
-            cantidadCuentas++; // Aumentamos el contador
-            guardarDatos(); // Guardamos en disco duro automáticamente
-        } else {
-            JOptionPane.showMessageDialog(null, "Error: El banco está lleno (Límite 100 cuentas).");
-        }
+        cuentas.add(c);
+        guardarDatos(); // Guardar siempre después de un cambio
     }
 
-    // REQUISITOS: Opción Eliminar Cuenta
-    public boolean eliminarCuenta(int numCuenta) {
-        // 1. Buscar la cuenta en el arreglo
-        for (int i = 0; i < cantidadCuentas; i++) {
-            if (cuentas[i].getNumCuenta() == numCuenta) {
-                // 2. Si la encontramos, hacemos el "recorrido a la izquierda"
-                // Esto tapa el hueco moviendo todos los elementos siguientes una posición atrás.
-                for (int j = i; j < cantidadCuentas - 1; j++) {
-                    cuentas[j] = cuentas[j + 1];
-                }
-                cuentas[cantidadCuentas - 1] = null; // Limpiamos el último rastro
-                cantidadCuentas--; // Ahora hay una cuenta menos
-                guardarDatos();
-                return true;
+    public void agregarPrestamo(Prestamo p) {
+        p.calcula_prestamo();
+        prestamos.add(p);
+        guardarDatos();
+    }
+
+    // --- NUEVO: MÉTODO PARA MODIFICAR CUENTA ---
+    // Explicación: Este método busca la cuenta por su número y le cambia el nombre al cliente.
+    public boolean modificarNombreCliente(int numCuenta, String nuevoNombre) {
+        // 1. Buscamos la cuenta en la lista
+        for (Cuenta c : cuentas) {
+            if (c.getNumCuenta() == numCuenta) {
+                // 2. Si la encontramos, actualizamos el dato
+                c.nombreCliente = nuevoNombre; // Actualizamos el atributo
+                guardarDatos(); // 3. Guardamos los cambios en el archivo
+                return true; // Indicamos que SÍ se pudo modificar
             }
         }
-        return false; // No se encontró
+        return false; // Indicamos que NO se encontró la cuenta
     }
 
-    // REQUISITOS: Opción Modificar Cuenta
-    public boolean modificarCuenta(int numCuenta, String nuevoNombre) {
-        Cuenta c = buscarCuentaPorNumero(numCuenta);
-        if (c != null) {
-            c.setNombreCliente(nuevoNombre); // Usamos el Setter
-            guardarDatos();
-            return true;
-        }
-        return false;
-    }
-
-    // --- GESTIÓN DE PRÉSTAMOS ---
-    public void agregarPrestamo(Prestamo p) {
-        p.calcula_prestamo(); // Ejecutamos la matemática de intereses
-        prestamos.add(p);     // Agregamos a la lista global del banco
-
-
-        // Buscamos si el cliente tiene cuenta para agregarle el préstamo a su historial personal
-        boolean vinculado = false;
-        for(int i = 0; i < cantidadCuentas; i++) {
-            if (cuentas[i].getNombreCliente().equalsIgnoreCase(p.getCliente())) {
-                cuentas[i].getPrestamos().add(p); // Agregamos a SU lista personal
-                vinculado = true;
+    // --- MÉTODOS DE CAJERO (MOVIMIENTOS) ---
+    public String realizarMovimiento(int numCuenta, double monto, String tipoMovimiento) {
+        Cuenta cuentaEncontrada = null;
+        // Búsqueda lineal simple
+        for (Cuenta c : cuentas) {
+            if (c.getNumCuenta() == numCuenta) {
+                cuentaEncontrada = c;
                 break;
             }
         }
 
-        if(!vinculado) {
-            JOptionPane.showMessageDialog(null, "Nota: El préstamo se creó, pero el cliente no tiene cuenta de ahorro asociada.");
+        if (cuentaEncontrada == null) {
+            return "Error: La cuenta no existe.";
         }
+
+        // Lógica de Depósito o Retiro
+        if (tipoMovimiento.equals("DEPOSITAR")) {
+            cuentaEncontrada.abonar(monto);
+        } else if (tipoMovimiento.equals("RETIRAR")) {
+            if (cuentaEncontrada.getSaldo() >= monto) {
+                cuentaEncontrada.cargar(monto);
+            } else {
+                return "Error: Fondos insuficientes.";
+            }
+        }
+
         guardarDatos();
+        return "Éxito: Movimiento realizado. Nuevo Saldo: $" + cuentaEncontrada.getSaldo();
     }
 
-    // Metodo auxiliar para obtener solo las cuentas activas (sin los espacios nulos del arreglo)
-    public Cuenta[] getCuentas() {
-        Cuenta[] activas = new Cuenta[cantidadCuentas];
-        for (int i = 0; i < cantidadCuentas; i++) {
-            activas[i] = cuentas[i];
+    // Validación simple para saber si un cliente existe antes de prestarle dinero
+    public boolean existeCliente(String nombreCliente) {
+        for (Cuenta c : cuentas) {
+            if (c.getNombreCliente().equalsIgnoreCase(nombreCliente)) {
+                return true;
+            }
         }
-        return activas;
+        return false;
+    }
+
+    // --- MÉTODOS AUXILIARES (GETTERS) ---
+    public Cuenta[] getCuentas() {
+        // Convertimos la lista a un arreglo normal para facilitar los ordenamientos
+        return cuentas.toArray(new Cuenta[0]);
     }
 
     public ArrayList<Prestamo> getPrestamos() {
         return prestamos;
     }
 
-    // --- ALGORITMOS DE ORDENAMIENTO ---
+    // --- ORDENAMIENTO QUICKSORT (Recursivo) ---
+    // Usado para los reportes generales
+    public void ejecutarQuickSort(boolean porNombre, boolean ascendente) {
+        if (cuentas.isEmpty()) return;
+        Cuenta[] arr = getCuentas();
 
-    // QuickSort: Algoritmo recursivo rápido para ordenar por nombre
-    public void ordenarPorNombreQuickSort() {
-        if (cantidadCuentas > 0) {
-            quickSort(cuentas, 0, cantidadCuentas - 1);
+        quickSortRecursivo(arr, 0, arr.length - 1, porNombre, ascendente);
+
+        cuentas = new ArrayList<>(Arrays.asList(arr));
+    }
+
+    private void quickSortRecursivo(Cuenta[] arr, int low, int high, boolean porNombre, boolean ascendente) {
+        if (low < high) {
+            int pi = partition(arr, low, high, porNombre, ascendente);
+            quickSortRecursivo(arr, low, pi - 1, porNombre, ascendente);
+            quickSortRecursivo(arr, pi + 1, high, porNombre, ascendente);
         }
     }
 
-    private void quickSort(Cuenta[] arr, int inicio, int fin) {
-        if (inicio < fin) {
-            int indicePivote = partition(arr, inicio, fin);
-            quickSort(arr, inicio, indicePivote - 1); // Ordenar mitad izquierda
-            quickSort(arr, indicePivote + 1, fin);    // Ordenar mitad derecha
-        }
-    }
+    private int partition(Cuenta[] arr, int low, int high, boolean porNombre, boolean ascendente) {
+        Cuenta pivot = arr[high];
+        int i = (low - 1);
 
-    private int partition(Cuenta[] arr, int inicio, int fin) {
-        String pivote = arr[fin].getNombreCliente();
-        int i = (inicio - 1);
-        for (int j = inicio; j < fin; j++) {
-            // Compara alfabéticamente los nombres
-            if (arr[j].getNombreCliente().compareToIgnoreCase(pivote) < 0) {
+        for (int j = low; j < high; j++) {
+            boolean condicion;
+
+            if (porNombre) {
+                int res = arr[j].getNombreCliente().compareToIgnoreCase(pivot.getNombreCliente());
+                condicion = ascendente ? (res < 0) : (res > 0);
+            } else {
+                int res = Integer.compare(arr[j].getNumCuenta(), pivot.getNumCuenta());
+                condicion = ascendente ? (res < 0) : (res > 0);
+            }
+
+            if (condicion) {
                 i++;
-                // Intercambio (Swap) clásico
                 Cuenta temp = arr[i];
                 arr[i] = arr[j];
                 arr[j] = temp;
             }
         }
         Cuenta temp = arr[i + 1];
-        arr[i + 1] = arr[fin];
-        arr[fin] = temp;
+        arr[i + 1] = arr[high];
+        arr[high] = temp;
         return i + 1;
     }
 
-    // Inserción: Algoritmo simple para ordenar por número de cuenta
-    public void ordenarPorNumeroInsercion() {
-        for (int i = 1; i < cantidadCuentas; ++i) {
-            Cuenta key = cuentas[i];
-            int j = i - 1;
-            // Mueve los elementos mayores a la derecha para hacer espacio
-            while (j >= 0 && cuentas[j].getNumCuenta() > key.getNumCuenta()) {
-                cuentas[j + 1] = cuentas[j];
-                j = j - 1;
+    // --- ORDENAMIENTO INSERCIÓN ---
+    // Usado para los reportes por categoría
+    public ArrayList<Cuenta> obtenerReportePorCategoria(String tipoClase, boolean ascendente) {
+        ArrayList<Cuenta> filtradas = new ArrayList<>();
+
+        // 1. Filtramos
+        for (Cuenta c : cuentas) {
+            if (tipoClase.equals("AHORRO") && c instanceof CuentaAhorro) {
+                filtradas.add(c);
+            } else if (tipoClase.equals("CORRIENTE") && c instanceof CuentaCorriente) {
+                filtradas.add(c);
             }
-            cuentas[j + 1] = key;
         }
+
+        // 2. Ordenamos (Inserción)
+        Cuenta[] arr = filtradas.toArray(new Cuenta[0]);
+        int n = arr.length;
+
+        for (int i = 1; i < n; ++i) {
+            Cuenta key = arr[i];
+            int j = i - 1;
+
+            while (j >= 0) {
+                boolean mover;
+                if (ascendente) mover = arr[j].getNumCuenta() > key.getNumCuenta();
+                else mover = arr[j].getNumCuenta() < key.getNumCuenta();
+
+                if (mover) {
+                    arr[j + 1] = arr[j];
+                    j = j - 1;
+                } else {
+                    break;
+                }
+            }
+            arr[j + 1] = key;
+        }
+
+        return new ArrayList<>(Arrays.asList(arr));
     }
 
-    // --- BÚSQUEDAS BINARIAS ---
-    // La búsqueda binaria requiere que el arreglo esté ordenado primero.
-
+    // --- BÚSQUEDAS (BINARIA) ---
     public Cuenta buscarCuentaPorNumero(int numCuenta) {
-        ordenarPorNumeroInsercion(); // Paso 1: Ordenar
+        ejecutarQuickSort(false, true); // Requisito: Ordenar antes de buscar
+        Cuenta[] arr = getCuentas();
 
-        int izquierda = 0, derecha = cantidadCuentas - 1;
-
+        int izquierda = 0, derecha = arr.length - 1;
         while (izquierda <= derecha) {
             int medio = izquierda + (derecha - izquierda) / 2;
-
-            if (cuentas[medio].getNumCuenta() == numCuenta)
-                return cuentas[medio]; // Encontrado
-
-            if (cuentas[medio].getNumCuenta() < numCuenta)
-                izquierda = medio + 1; // Buscar en la mitad derecha
-            else
-                derecha = medio - 1;   // Buscar en la mitad izquierda
+            if (arr[medio].getNumCuenta() == numCuenta) return arr[medio];
+            if (arr[medio].getNumCuenta() < numCuenta) izquierda = medio + 1;
+            else derecha = medio - 1;
         }
-        return null; // No existe
+        return null;
     }
 
     public Cuenta buscarCuentaPorNombre(String nombre) {
-        ordenarPorNombreQuickSort(); // Paso 1: Ordenar alfabéticamente
+        ejecutarQuickSort(true, true);
+        Cuenta[] arr = getCuentas();
 
-        int izquierda = 0, derecha = cantidadCuentas - 1;
+        int izquierda = 0, derecha = arr.length - 1;
         while (izquierda <= derecha) {
             int medio = izquierda + (derecha - izquierda) / 2;
-            // compareTo devuelve 0 si son iguales
-            int res = nombre.compareToIgnoreCase(cuentas[medio].getNombreCliente());
-
-            if (res == 0) return cuentas[medio];
+            int res = nombre.compareToIgnoreCase(arr[medio].getNombreCliente());
+            if (res == 0) return arr[medio];
             if (res > 0) izquierda = medio + 1;
             else derecha = medio - 1;
         }
@@ -194,57 +212,45 @@ public class GestorBanco {
 
     // --- CIERRE MENSUAL ---
     public void aplicarCorteMensual() {
-        // Polimorfismo: No importa si es Ahorro o Corriente, ejecutamos sus métodos
-        for (int i = 0; i < cantidadCuentas; i++) {
-            cuentas[i].comisiones();
-            cuentas[i].intereses();
+        for (Cuenta c : cuentas) {
+            c.comisiones();
+            c.intereses();
         }
         guardarDatos();
     }
 
-    // --- PERSISTENCIA (Archivos) ---
-    // Serialización: Guarda el objeto completo en bytes.
+    // --- GUARDADO EN ARCHIVOS (PERSISTENCIA) ---
     private void guardarDatos() {
         try {
-            ObjectOutputStream oosC = new ObjectOutputStream(new FileOutputStream(ARCHIVO_CUENTAS));
+            ObjectOutputStream oosC = new ObjectOutputStream(new FileOutputStream("cuentas.dat"));
             oosC.writeObject(cuentas);
             oosC.close();
 
-            ObjectOutputStream oosP = new ObjectOutputStream(new FileOutputStream(ARCHIVO_PRESTAMOS));
+            ObjectOutputStream oosP = new ObjectOutputStream(new FileOutputStream("prestamos.dat"));
             oosP.writeObject(prestamos);
             oosP.close();
         } catch (IOException e) {
-            // Ignoramos errores de escritura por simplicidad
+            System.out.println("Error al guardar: " + e.getMessage());
         }
     }
 
-    // Carga los datos al iniciar el programa
     @SuppressWarnings("unchecked")
     private void cargarDatos() {
         try {
-            File fC = new File(ARCHIVO_CUENTAS);
+            File fC = new File("cuentas.dat");
             if (fC.exists()) {
                 ObjectInputStream oisC = new ObjectInputStream(new FileInputStream(fC));
-                cuentas = (Cuenta[]) oisC.readObject();
+                cuentas = (ArrayList<Cuenta>) oisC.readObject();
                 oisC.close();
-
-                // IMPORTANTE: Al cargar el arreglo, debemos contar cuántos no son null
-                // para restaurar la variable 'cantidadCuentas'.
-                cantidadCuentas = 0;
-                for (Cuenta c : cuentas) {
-                    if (c != null) cantidadCuentas++;
-                    else break;
-                }
             }
-
-            File fP = new File(ARCHIVO_PRESTAMOS);
+            File fP = new File("prestamos.dat");
             if (fP.exists()) {
                 ObjectInputStream oisP = new ObjectInputStream(new FileInputStream(fP));
                 prestamos = (ArrayList<Prestamo>) oisP.readObject();
                 oisP.close();
             }
         } catch (Exception e) {
-            // Si falla, iniciamos en blanco
+            // Si es la primera vez que corre, no pasa nada
         }
     }
 }
