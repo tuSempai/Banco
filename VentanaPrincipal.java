@@ -389,8 +389,6 @@ public class VentanaPrincipal extends JFrame {
         }
     }
 
-    // --- AQUÍ ESTÁ EL ARREGLO DEL ERROR ---
-    // Metodo Main obligatorio para que Java pueda iniciar el programa
     public static void main(String[] args) {
         // SwingUtilities.invokeLater asegura que la interfaz gráfica
         // se maneje en el hilo correcto (Event Dispatch Thread).

@@ -12,7 +12,7 @@ public class GestorBanco {
     private final int MAX_CUENTAS = 100; // Tope máximo del banco.
 
     // Para préstamos permite dinámicas, así que usamos ArrayList.
-    private ArrayList<Prestamo> prestamos;
+    private ArrayList<Prestamo> prestamos; // esto no deberia ir aqui por que ya esta en el banco
 
     // Nombres de los archivos físicos
     private final String ARCHIVO_CUENTAS = "cuentas.dat";
@@ -74,7 +74,7 @@ public class GestorBanco {
         p.calcula_prestamo(); // Ejecutamos la matemática de intereses
         prestamos.add(p);     // Agregamos a la lista global del banco
 
-        // --- VINCULACIÓN IMPORTANTE ---
+
         // Buscamos si el cliente tiene cuenta para agregarle el préstamo a su historial personal
         boolean vinculado = false;
         for(int i = 0; i < cantidadCuentas; i++) {
@@ -244,7 +244,7 @@ public class GestorBanco {
                 oisP.close();
             }
         } catch (Exception e) {
-            // Si falla (ej. archivo vacío), iniciamos en blanco
+            // Si falla, iniciamos en blanco
         }
     }
 }
