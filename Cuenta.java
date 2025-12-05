@@ -13,7 +13,7 @@ public abstract class Cuenta implements Serializable {
 
     // REQUISITOS: Lista para guardar los préstamos que pertenecen a ESTE cliente.
     // Usamos ArrayList aquí porque permite dinámicos para préstamos.
-    protected ArrayList<Prestamo> prestamos = new ArrayList<>();
+    private ArrayList<Prestamo> prestamos = new ArrayList<>();
 
     // Constructor: Inicializa los datos básicos al crear la cuenta.
     public Cuenta(int numCuenta, String nombreCliente, double saldo) {
